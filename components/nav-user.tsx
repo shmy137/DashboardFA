@@ -87,15 +87,7 @@ export function NavUser({
               <DropdownMenuItem>
                 <IconUserCircle />
                 Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
-              </DropdownMenuItem>
+              </DropdownMenuItem> 
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
