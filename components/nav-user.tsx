@@ -90,7 +90,14 @@ export function NavUser({
               </DropdownMenuItem> 
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('judgeId');
+                window.location.href = '/login';
+              }
+            }}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

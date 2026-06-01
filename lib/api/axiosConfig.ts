@@ -29,7 +29,7 @@ const fetchWrapper = {
         headers,
       });
 
-      if (response.status === 401) {
+      if (response.status === 401 && !url.includes("login")) {
         if (typeof window !== "undefined") {
           localStorage.removeItem("accessToken");
           window.location.href = "/login";

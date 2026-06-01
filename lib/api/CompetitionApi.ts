@@ -12,5 +12,13 @@ export const CompetitionApi = {
 
  deleteCompetition: async function (id : any) {
     return await axiosConfig.delete(`competitions/delete/${id}`);
+ },
+
+ getOneCompetition: async function (id: any) {
+    return await axiosConfig.get(`competitions/get-one/${id}`);
+ },
+
+ updateCompetition: async function (id: any, data: any) {
+    return await axiosConfig.post(`competitions/update/${id}`, data);
  }
 }

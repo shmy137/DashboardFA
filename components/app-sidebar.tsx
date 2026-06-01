@@ -33,6 +33,17 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+import {
+  IconPencil,
+  IconPencilPlus,
+  IconPencilCheck,
+  IconWriting,
+  IconSignature,
+  IconEdit,
+  IconFilePencil,
+  IconClipboardText,
+} from "@tabler/icons-react";
+
 
 const data = {
   user: {
@@ -45,76 +56,71 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
+      role: ["admin", "judge"]
     },
     {
       title: "Results",
       url: "/dashboard/result",
       icon: IconFolder,
+      role: ["admin"]
+
     },
     {
       title: "Leaderboard",
       url: "/dashboard/leaderboard",
       icon: IconFolder,
+      role: ["admin"]
+
     },
     {
       title: "Judges",
       url: "/dashboard/judges",
       icon: IconListDetails,
+      role: ["admin"]
+
     },
     {
       title: "Competitions",
       url: "/dashboard/competitions",
       icon: IconFolder,
+      role: ["admin", "judge"]
+
     },
     {
       title: "Category",
       url: "/dashboard/category",
       icon: IconChartBar,
+      role: ["admin"]
     },
     {
       title: "Team",
       url: "/dashboard/team",
       icon: IconUsers,
+      role: ["admin"]
+    },
+    {
+      title: "Evaluation",
+      url: "/dashboard/evaluation",
+      icon: IconWriting,
+      role: ["judge"]
     },
   ],
-
-  // navSecondary: [
-  //   {
-  //     title: "Settings",
-  //     url: "#",
-  //     icon: IconSettings,
-  //   },
-  //   {
-  //     title: "Get Help",
-  //     url: "#",
-  //     icon: IconHelp,
-  //   },
-  //   {
-  //     title: "Search",
-  //     url: "#",
-  //     icon: IconSearch,
-  //   },
-  // ],
-  // documents: [
-  //   {
-  //     name: "Data Library",
-  //     url: "#",
-  //     icon: IconDatabase,
-  //   },
-  //   {
-  //     name: "Reports",
-  //     url: "#",
-  //     icon: IconReport,
-  //   },
-  //   {
-  //     name: "Word Assistant",
-  //     url: "#",
-  //     icon: IconFileWord,
-  //   },
-  // ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [role, setRole] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRole(localStorage.getItem("userRole") || "admin"); // fallback to admin for safety, or we could use null
+    }
+  }, []);
+
+  const filteredNavMain = React.useMemo(() => {
+    if (!role) return [];
+    return data.navMain.filter((item) => item.role?.includes(role));
+  }, [role]);
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -133,7 +139,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNavMain} />
         {/* <NavDocuments items={data.documents} /> */}
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>

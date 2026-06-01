@@ -1,0 +1,293 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import Link from "next/link";
+import { JudgesApi } from "@/lib/api/JudgesApi";
+import { CompetitionApi } from "@/lib/api/CompetitionApi";
+import { CategoryApi } from "@/lib/api/CategoryApi";
+import { toast } from "sonner";
+
+const EditJudgeForm = () => {
+  const router = useRouter();
+  const params = useParams();
+  const { id } = params;
+
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [competitions, setCompetitions] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  
+  const [formData, setFormData] = useState({
+    competitionIds: [] as string[],
+    name: "",
+    email: "",
+    password: "", // Optional for edit
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [compRes, catRes, judgeRes] = await Promise.all([
+          CompetitionApi.getAllcompetitions(),
+          CategoryApi.GetAllCategories(),
+          JudgesApi.getOneJudge(id)
+        ]);
+        
+        const compData = compRes?.data;
+        let finalComps = [];
+        if (Array.isArray(compData)) finalComps = compData;
+        else if (Array.isArray(compData?.data)) finalComps = compData.data;
+        else if (Array.isArray(compData?.competitions)) finalComps = compData.competitions;
+        else if (Array.isArray(compData?.allcompetitions)) finalComps = compData.allcompetitions;
+        else if (Array.isArray(compData?.data?.competitions)) finalComps = compData.data.competitions;
+        else if (Array.isArray(compData?.data?.allcompetitions)) finalComps = compData.data.allcompetitions;
+        else if (Array.isArray(compData?.data?.data)) finalComps = compData.data.data;
+        setCompetitions(Array.isArray(finalComps) ? finalComps : []);
+
+        const catData = catRes?.data;
+        let finalCats = [];
+        if (Array.isArray(catData)) finalCats = catData;
+        else if (Array.isArray(catData?.data)) finalCats = catData.data;
+        else if (Array.isArray(catData?.categories)) finalCats = catData.categories;
+        else if (Array.isArray(catData?.allcategories)) finalCats = catData.allcategories;
+        else if (Array.isArray(catData?.data?.categories)) finalCats = catData.data.categories;
+        else if (Array.isArray(catData?.data?.allcategories)) finalCats = catData.data.allcategories;
+        else if (Array.isArray(catData?.data?.data)) finalCats = catData.data.data;
+        setCategories(Array.isArray(finalCats) ? finalCats : []);
+
+        // Load judge data
+        const judgeData = judgeRes?.data?.data?.[0] || judgeRes?.data?.data || judgeRes?.data;
+        if (judgeData) {
+          setFormData({
+            competitionIds: Array.isArray(judgeData.competitionIds) ? judgeData.competitionIds : [],
+            name: judgeData.name || "",
+            email: judgeData.email || "",
+            password: judgeData.password || "",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        toast.error("Failed to load judge data");
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    if (id) {
+      fetchData();
+    }
+  }, [id]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCheckboxChange = (compId: string, checked: boolean) => {
+    setFormData((prev) => {
+      if (checked) {
+        return { ...prev, competitionIds: [...prev.competitionIds, compId] };
+      } else {
+        return { ...prev, competitionIds: prev.competitionIds.filter(id => id !== compId) };
+      }
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.competitionIds.length === 0) {
+      toast.error("Please select at least one competition");
+      return;
+    }
+    setLoading(true);
+
+    try {
+      const res = await JudgesApi.updateJudge(id, formData);
+      if (res?.data?.success) {
+        toast.success("Judge updated successfully");
+        router.push("/dashboard/judges");
+        router.refresh();
+      } else {
+        toast.error(res?.data?.message || "Failed to update judge");
+      }
+    } catch (error: any) {
+      console.error("Error submitting form:", error);
+      toast.error(error?.response?.data?.message || "Error updating judge");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredCompetitions = selectedCategory 
+    ? competitions.filter(c => c.categoryId === selectedCategory || c.category === selectedCategory || c.categoryId?._id === selectedCategory)
+    : [];
+
+  const selectedCompetitionsObjects = competitions.filter(c => formData.competitionIds.includes(c._id));
+
+  if (initialLoading) {
+    return <div className="p-8 text-center text-muted-foreground">Loading judge data...</div>;
+  }
+
+  return (
+    <div className="flex flex-col gap-9">
+      <Card className="w-full max-w-3xl mx-auto mt-6">
+        <form onSubmit={handleSubmit}>
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Edit Judge</CardTitle>
+            <CardDescription>
+              Update the judge's account information and assigned competitions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2 pt-1">
+              <Label htmlFor="name">Judge Name <span className="text-destructive">*</span></Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="Enter judge name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-4 rounded-md border p-4 bg-muted/20">
+              <div className="space-y-1">
+                <Label>Competitions Assignment <span className="text-destructive">*</span></Label>
+                <p className="text-sm text-muted-foreground">Select a category to view and assign its competitions.</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="w-full sm:w-1/2">
+                  <Select onValueChange={setSelectedCategory} value={selectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category to filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.name || cat.title || cat._id}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedCategory && (
+                  <div className="p-3 border rounded-md bg-background">
+                    {filteredCompetitions.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {filteredCompetitions.map(comp => (
+                          <div key={comp._id} className="flex flex-row items-start space-x-3 space-y-0 p-2 rounded hover:bg-muted/50 transition-colors">
+                            <Checkbox 
+                              id={`comp-${comp._id}`} 
+                              checked={formData.competitionIds.includes(comp._id)}
+                              onCheckedChange={(checked) => handleCheckboxChange(comp._id, checked as boolean)}
+                            />
+                            <div className="space-y-1 leading-none">
+                              <Label htmlFor={`comp-${comp._id}`} className="font-medium cursor-pointer">
+                                {comp.name || comp.title}
+                              </Label>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No competitions found for this category.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {formData.competitionIds.length > 0 && (
+                <div className="space-y-4 pt-4 border-t">
+                  <Label className="text-xs font-semibold uppercase text-muted-foreground">Selected Competitions ({formData.competitionIds.length})</Label>
+                  <div className="space-y-3">
+                    {categories.map((category) => {
+                      const compsInCategory = selectedCompetitionsObjects.filter(
+                        c => c.categoryId === category._id || c.category === category._id || c.categoryId?._id === category._id
+                      );
+                      
+                      if (compsInCategory.length === 0) return null;
+                      
+                      return (
+                        <div key={category._id} className="space-y-1.5 border rounded-md p-3 bg-background/50">
+                          <p className="text-sm font-semibold text-foreground pb-1 border-b mb-2">{category.name || category.title}</p>
+                          <div className="flex flex-wrap gap-2">
+                            {compsInCategory.map(comp => (
+                              <Badge key={comp._id} variant="secondary" className="text-xs">
+                                {comp.name || comp.title}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter judge email address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Create a strong password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-between border-t p-4 mt-5">
+            <Button variant="outline" type="button" asChild>
+              <Link href="/dashboard/judges">Cancel</Link>
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Updating..." : "Update Judge"}
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  );
+};
+
+export default EditJudgeForm;

@@ -70,17 +70,7 @@ const TeamForm = () => {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="Enter team description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-              />
-            </div>
+        
           </CardContent>
           <CardFooter className="flex justify-between border-t p-6">
             <Button variant="outline" type="button" asChild>

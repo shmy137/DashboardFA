@@ -41,7 +41,7 @@
     "@radix-ui/react-toggle": "latest",
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
-    "@tabler/icons-react": "latest",
+    "@tabler/icons-react": "^3.44.0",
     "@tanstack/react-table": "latest",
     "@vercel/analytics": "1.6.1",
     "autoprefixer": "^10.4.20",

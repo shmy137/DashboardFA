@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,10 +16,15 @@ import {
 import Link from "next/link";
 import { CompetitionApi } from "@/lib/api/CompetitionApi";
 import { CategoryApi } from "@/lib/api/CategoryApi";
+import { toast } from "sonner";
 
-const CompetitionForm = () => {
+const EditCompetitionForm = () => {
   const router = useRouter();
+  const params = useParams();
+  const { id } = params;
+  
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: "",
@@ -28,21 +33,36 @@ const CompetitionForm = () => {
   });
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const res = await CategoryApi.GetAllCategories();
-        const responseData = res?.data;
+        const catRes = await CategoryApi.GetAllCategories();
+        const responseData = catRes?.data;
         let finalData = [];
         if (Array.isArray(responseData)) finalData = responseData;
         else if (Array.isArray(responseData?.data)) finalData = responseData.data;
-        
         setCategories(Array.isArray(finalData) ? finalData : []);
+
+        if (id) {
+          const compRes = await CompetitionApi.getOneCompetition(id);
+          const compData = compRes?.data?.data?.[0] || compRes?.data?.data || compRes?.data;
+          
+          if (compData) {
+            setFormData({
+              name: compData.name || "",
+              categoryId: compData.categoryId || "",
+              gender: compData.gender || "Boys",
+            });
+          }
+        }
       } catch (error) {
-        console.error("Failed to fetch categories", error);
+        console.error("Failed to fetch data", error);
+        toast.error("Failed to load competition data");
+      } finally {
+        setInitialLoading(false);
       }
     };
-    fetchCategories();
-  }, []);
+    fetchData();
+  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -54,27 +74,34 @@ const CompetitionForm = () => {
     setLoading(true);
 
     try {
-      const res = await CompetitionApi.createCompetition(formData);
-      console.log("Competition created:", res);
-      
-      // Redirect back to Competition list and refresh data
-      router.push("/dashboard/competitions");
-      router.refresh();
-    } catch (error) {
+      const res = await CompetitionApi.updateCompetition(id, formData);
+      if (res?.data?.success) {
+        toast.success("Competition updated successfully");
+        router.push("/dashboard/competitions");
+        router.refresh();
+      } else {
+        toast.error(res?.data?.message || "Failed to update competition");
+      }
+    } catch (error: any) {
       console.error("Error submitting form:", error);
+      toast.error(error?.response?.data?.message || "Error updating competition");
     } finally {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return <div className="p-8 text-center text-muted-foreground">Loading competition data...</div>;
+  }
 
   return (
     <div className="flex flex-col gap-9">
       <Card className="w-full max-w-2xl mx-auto mt-6">
         <form onSubmit={handleSubmit}>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Add New Competition</CardTitle>
+            <CardTitle className="text-2xl font-bold">Edit Competition</CardTitle>
             <CardDescription>
-              Create a new Competition by filling out the information below.
+              Update the competition information below.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -130,7 +157,7 @@ const CompetitionForm = () => {
               <Link href="/dashboard/competitions">Cancel</Link>
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Competition"}
+              {loading ? "Updating..." : "Update Competition"}
             </Button>
           </CardFooter>
         </form>
@@ -139,4 +166,4 @@ const CompetitionForm = () => {
   );
 };
 
-export default CompetitionForm;
+export default EditCompetitionForm;
