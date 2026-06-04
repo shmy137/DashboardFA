@@ -14,13 +14,15 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { JudgesApi } from "@/lib/api/JudgesApi";
+import { GreenRoomApi } from "@/lib/api/GreenRoomApi";
+import { TeamApi } from "@/lib/api/TeamApi";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ username: "", password: "" });
   const [errorMsg, setErrorMsg] = useState("");
-
+ 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
@@ -39,6 +41,8 @@ export default function LoginPage() {
           if (typeof window !== "undefined") {
             localStorage.setItem("accessToken", "admin-token");
             localStorage.setItem("userRole", "admin");
+            localStorage.setItem("userName", "Administrator");
+            localStorage.setItem("userEmail", form.username);
           }
           toast.success("Admin logged in successfully");
           router.push("/dashboard");
@@ -50,22 +54,77 @@ export default function LoginPage() {
         return; // Don't proceed to judge login
       }
 
-      // If not admin, try authenticating as Judge via backend API
-      const res = await JudgesApi.loginJudge({
-        email: form.username,
-        password: form.password,
-      });
+      // Try Judge Login
+      try {
+        const judgeRes = await JudgesApi.loginJudge({
+          email: form.username,
+          password: form.password,
+        });
 
-      if (res?.data?.success) {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("accessToken", `judge-token-${res.data.judgeId}`);
-          localStorage.setItem("userRole", "judge");
-          localStorage.setItem("judgeId", res.data.judgeId);
+        if (judgeRes?.data?.success) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("accessToken", `judge-token-${judgeRes.data.judgeId}`);
+            localStorage.setItem("userRole", "judge");
+            localStorage.setItem("judgeId", judgeRes.data.judgeId);
+            localStorage.setItem("userName", judgeRes.data.name || "Judge");
+            localStorage.setItem("userEmail", form.username);
+            if (judgeRes.data.stageNo) {
+              localStorage.setItem("stageNo", judgeRes.data.stageNo);
+            }
+          }
+          toast.success("Logged in successfully");
+          router.push("/dashboard"); 
+          return;
         }
-        toast.success("Logged in successfully");
-        router.push("/dashboard"); 
-      } else {
-        const errorText = res?.data?.message || "Invalid credentials. Please try again.";
+      } catch (judgeError) {
+        // Ignore judge login error and try green room
+      }
+
+      // Try Green Room Login
+      try {
+        const greenRes = await GreenRoomApi.loginGreenRoom({
+          email: form.username,
+          password: form.password,
+        });
+
+        if (greenRes?.data?.success) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("accessToken", `greenroom-token-${greenRes.data.greenRoomId}`);
+            localStorage.setItem("userRole", "greenroom");
+            localStorage.setItem("userName", greenRes.data.name || "Green Room");
+            localStorage.setItem("userEmail", form.username);
+            if (greenRes.data.stageNo) {
+              localStorage.setItem("stageNo", greenRes.data.stageNo);
+            }
+          }
+          toast.success("Logged in to Green Room successfully");
+          router.push("/dashboard");
+          return;
+        }
+      } catch (greenError) {
+        // Ignore green room login error and try team
+      }
+
+      // Try Team Login
+      try {
+        const teamRes = await TeamApi.loginTeam({
+          name: form.username,
+          password: form.password,
+        });
+
+        if (teamRes?.data?.success) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("accessToken", `team-token-${teamRes.data.teamId}`);
+            localStorage.setItem("userRole", "team");
+            localStorage.setItem("userName", teamRes.data.name || form.username);
+            localStorage.setItem("userEmail", form.username);
+          }
+          toast.success("Logged in to Team successfully");
+          router.push("/dashboard/team-participants");
+          return;
+        }
+      } catch (teamError: any) {
+        const errorText = teamError.response?.data?.message || "Invalid credentials. Please try again.";
         setErrorMsg(errorText);
         toast.error(errorText);
       }

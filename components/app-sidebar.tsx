@@ -44,7 +44,6 @@ import {
   IconClipboardText,
 } from "@tabler/icons-react";
 
-
 const data = {
   user: {
     name: "shadcn",
@@ -56,63 +55,94 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
-      role: ["admin", "judge"]
+      role: ["admin", "judge", "greenroom"],
     },
     {
       title: "Results",
       url: "/dashboard/result",
       icon: IconFolder,
-      role: ["admin"]
-
+      role: ["admin"],
     },
     {
       title: "Leaderboard",
       url: "/dashboard/leaderboard",
       icon: IconFolder,
-      role: ["admin"]
-
+      role: ["admin"],
+    },
+    {
+      title: "Individual Points",
+      url: "/dashboard/individual-points",
+      icon: IconUsers,
+      role: ["admin"],
     },
     {
       title: "Judges",
       url: "/dashboard/judges",
       icon: IconListDetails,
-      role: ["admin"]
-
+      role: ["admin"],
+    },
+    {
+      title: "Green Room",
+      url: "/dashboard/greenroom",
+      icon: IconListDetails,
+      role: ["admin"],
     },
     {
       title: "Competitions",
       url: "/dashboard/competitions",
       icon: IconFolder,
-      role: ["admin", "judge"]
-
+      role: ["admin", "judge", "greenroom", "team"],
     },
     {
       title: "Category",
       url: "/dashboard/category",
       icon: IconChartBar,
-      role: ["admin"]
+      role: ["admin"],
     },
     {
       title: "Team",
       url: "/dashboard/team",
       icon: IconUsers,
-      role: ["admin"]
+      role: ["admin"],
     },
     {
       title: "Evaluation",
       url: "/dashboard/evaluation",
       icon: IconWriting,
-      role: ["judge"]
+      role: ["admin", "judge"],
+    },
+    {
+      title: "Participants Allocation",
+      url: "/dashboard/participants",
+      icon: IconListDetails,
+      role: ["greenroom"],
+    },
+    {
+      title: "Participants",
+      url: "/dashboard/team-participants",
+      icon: IconUsers,
+      role: ["team"],
     },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [role, setRole] = React.useState<string | null>(null);
+  const [user, setUser] = React.useState(data.user);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-      setRole(localStorage.getItem("userRole") || "admin"); // fallback to admin for safety, or we could use null
+      const storedRole = localStorage.getItem("userRole") || "admin";
+      setRole(storedRole);
+      
+      const storedName = localStorage.getItem("userName");
+      const storedEmail = localStorage.getItem("userEmail");
+      
+      setUser({
+        name: storedName || "Admin User",
+        email: storedEmail || "admin@example.com",
+        avatar: "/avatars/shadcn.jpg" // Using default avatar or dynamic one if available
+      });
     }
   }, []);
 
@@ -144,7 +174,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );

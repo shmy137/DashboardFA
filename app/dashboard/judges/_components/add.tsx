@@ -39,6 +39,7 @@ const JudgeForm = () => {
     name: "",
     email: "",
     password: "",
+    stageNo: "stage1",
   });
 
   useEffect(() => {
@@ -77,7 +78,7 @@ const JudgeForm = () => {
     fetchData();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -94,10 +95,6 @@ const JudgeForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.competitionIds.length === 0) {
-      alert("Please select at least one competition");
-      return;
-    }
     setLoading(true);
 
     try {
@@ -112,12 +109,6 @@ const JudgeForm = () => {
       setLoading(false);
     }
   };
-
-  const filteredCompetitions = selectedCategory 
-    ? competitions.filter(c => c.categoryId === selectedCategory || c.category === selectedCategory || c.categoryId?._id === selectedCategory)
-    : [];
-
-  const selectedCompetitionsObjects = competitions.filter(c => formData.competitionIds.includes(c._id));
 
   return (
     <div className="flex flex-col gap-9">
@@ -143,80 +134,7 @@ const JudgeForm = () => {
             </div>
 
             <div className="space-y-4 rounded-md border p-4 bg-muted/20">
-              <div className="space-y-1">
-                <Label>Competitions Assignment <span className="text-destructive">*</span></Label>
-                <p className="text-sm text-muted-foreground">Select a category to view and assign its competitions.</p>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="w-full sm:w-1/2">
-                  <Select onValueChange={setSelectedCategory} value={selectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category to filter" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat._id} value={cat._id}>
-                          {cat.name || cat.title || cat._id}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {selectedCategory && (
-                  <div className="p-3 border rounded-md bg-background">
-                    {filteredCompetitions.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        {filteredCompetitions.map(comp => (
-                          <div key={comp._id} className="flex flex-row items-start space-x-3 space-y-0 p-2 rounded hover:bg-muted/50 transition-colors">
-                            <Checkbox 
-                              id={`comp-${comp._id}`} 
-                              checked={formData.competitionIds.includes(comp._id)}
-                              onCheckedChange={(checked) => handleCheckboxChange(comp._id, checked as boolean)}
-                            />
-                            <div className="space-y-1 leading-none">
-                              <Label htmlFor={`comp-${comp._id}`} className="font-medium cursor-pointer">
-                                {comp.name || comp.title}
-                              </Label>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No competitions found for this category.</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {formData.competitionIds.length > 0 && (
-                <div className="space-y-4 pt-4 border-t">
-                  <Label className="text-xs font-semibold uppercase text-muted-foreground">Selected Competitions ({formData.competitionIds.length})</Label>
-                  <div className="space-y-3">
-                    {categories.map((category) => {
-                      const compsInCategory = selectedCompetitionsObjects.filter(
-                        c => c.categoryId === category._id || c.category === category._id || c.categoryId?._id === category._id
-                      );
-                      
-                      if (compsInCategory.length === 0) return null;
-                      
-                      return (
-                        <div key={category._id} className="space-y-1.5 border rounded-md p-3 bg-background/50">
-                          <p className="text-sm font-semibold text-foreground pb-1 border-b mb-2">{category.name || category.title}</p>
-                          <div className="flex flex-wrap gap-2">
-                            {compsInCategory.map(comp => (
-                              <Badge key={comp._id} variant="secondary" className="text-xs">
-                                {comp.name || comp.title}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              <p className="text-sm text-muted-foreground">The judge is automatically assigned to the competitions in their selected stage.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,6 +161,22 @@ const JudgeForm = () => {
                   onChange={handleChange}
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stageNo">Assigned Stage <span className="text-destructive">*</span></Label>
+                <select
+                  id="stageNo"
+                  name="stageNo"
+                  value={formData.stageNo}
+                  onChange={handleChange}
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="stage1">Stage 1</option>
+                  <option value="stage2">Stage 2</option>
+                  <option value="stage3">Stage 3</option>
+                  <option value="stage4">Stage 4</option>
+                </select>
               </div>
             </div>
           </CardContent>

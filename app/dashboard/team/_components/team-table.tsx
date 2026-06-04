@@ -11,16 +11,41 @@ import {
 } from "@/components/ui/table";
 import { TeamApi } from "@/lib/api/TeamApi";
 import { cn } from "@/lib/utils";
-import { TrashIcon } from "lucide-react";
+import { TrashIcon, EditIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-// import toast from "react-hot-toast";
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export function TeamTable({ team = [], fetchTeams }: any) {
-
   const router = useRouter();
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+
+  const handleUpdatePassword = async (id: string) => {
+    if (!newPassword) {
+      toast.error("Password cannot be empty");
+      return;
+    }
+    try {
+      const res = await TeamApi.updateTeam(id, { password: newPassword });
+      if (res.data?.success) {
+        toast.success("Password updated successfully");
+        setEditingTeamId(null);
+        setNewPassword("");
+        if (fetchTeams) fetchTeams();
+        else window.location.reload();
+      } else {
+        toast.error(res.data?.message || "Failed to update password");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update password");
+    }
+  };
 
   const DeleteFunction = async (id: any) => {
     const res = await TeamApi.deleteTeam(id);
@@ -71,15 +96,38 @@ export function TeamTable({ team = [], fetchTeams }: any) {
             >
               <TableCell className="pl-5 text-left sm:pl-6 xl:pl-7.5">
                 <div>{team.name}</div>
+                {editingTeamId === team._id && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Input 
+                      type="text" 
+                      placeholder="New Password" 
+                      value={newPassword} 
+                      onChange={(e) => setNewPassword(e.target.value)} 
+                      className="h-8 text-sm max-w-[200px]" 
+                    />
+                    <Button size="sm" onClick={() => handleUpdatePassword(team._id)}>Save</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setEditingTeamId(null)}>Cancel</Button>
+                  </div>
+                )}
               </TableCell>
               <TableCell className="pr-5 text-right sm:pr-6 xl:pr-7.5">
                 <div className="flex items-center justify-end gap-x-3.5">
                   <button
-                    className="hover:text-primary"
+                    className="hover:text-primary transition-colors p-1"
+                    onClick={() => {
+                      setEditingTeamId(team._id);
+                      setNewPassword("");
+                    }}
+                  >
+                    <span className="sr-only">Edit Password</span>
+                    <EditIcon className="h-4 w-4" />
+                  </button>
+                  <button
+                    className="hover:text-destructive transition-colors p-1"
                     onClick={() => DeleteFunction(team._id)}
                   >
                     <span className="sr-only">Delete Invoice</span>
-                    <TrashIcon />
+                    <TrashIcon className="h-4 w-4" />
                   </button>
                 </div>
               </TableCell>

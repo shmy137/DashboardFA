@@ -30,6 +30,8 @@ const EditCompetitionForm = () => {
     name: "",
     categoryId: "",
     gender: "Boys",
+    stageNo: "stage1",
+    competitionType: "stage",
   });
 
   useEffect(() => {
@@ -51,6 +53,8 @@ const EditCompetitionForm = () => {
               name: compData.name || "",
               categoryId: compData.categoryId || "",
               gender: compData.gender || "Boys",
+              stageNo: compData.stageNo || "stage1",
+              competitionType: compData.competitionType || "stage",
             });
           }
         }
@@ -148,6 +152,40 @@ const EditCompetitionForm = () => {
               >
                 <option value="Boys">Boys</option>
                 <option value="Girls">Girls</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="stageNo">Stage Number <span className="text-destructive">*</span></Label>
+              <select
+                id="stageNo"
+                name="stageNo"
+                value={formData.stageNo}
+                onChange={handleChange}
+                required
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="stage1">Stage 1</option>
+                <option value="stage2">Stage 2</option>
+                <option value="stage3">Stage 3</option>
+                <option value="stage4">Stage 4</option>
+                <option value="Girls">Girls</option>
+
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="competitionType">Competition Type <span className="text-destructive">*</span></Label>
+              <select
+                id="competitionType"
+                name="competitionType"
+                value={formData.competitionType}
+                onChange={handleChange}
+                required
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="stage">Stage</option>
+                <option value="off stage">Off Stage</option>
               </select>
             </div>
             
