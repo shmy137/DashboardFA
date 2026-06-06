@@ -14,6 +14,7 @@ const Page = () => {
   const [loading, setLoading] = useState(true);
   const [loadingParticipants, setLoadingParticipants] = useState(false);
   const [updatingConfig, setUpdatingConfig] = useState(false);
+  const [codeLettersMap, setCodeLettersMap] = useState<Record<string, string>>({});
 
   const fetchCompetitionsData = async () => {
     try {
@@ -51,7 +52,14 @@ const Page = () => {
       let finalData = [];
       if (Array.isArray(responseData)) finalData = responseData;
       else if (Array.isArray(responseData?.data)) finalData = responseData.data;
-      setData(Array.isArray(finalData) ? finalData : []);
+      const parts = Array.isArray(finalData) ? finalData : [];
+      setData(parts);
+
+      const initialMap: Record<string, string> = {};
+      parts.forEach((p: any) => {
+         initialMap[p._id] = p.codeLetters?.find((c: any) => c.competitionId === competitionId)?.codeLetter || "";
+      });
+      setCodeLettersMap(initialMap);
     } catch (error) {
       console.error("Failed to fetch participants", error);
     } finally {
@@ -71,7 +79,7 @@ const Page = () => {
     }
   }, []);
 
-  const saveJudgeConfig = async (comp: any, count: number, names: string[]) => {
+  const saveAllConfig = async (comp: any, count: number, names: string[]) => {
     try {
       setUpdatingConfig(true);
 
@@ -88,6 +96,18 @@ const Page = () => {
       await CompetitionApi.updateCompetition(comp._id, {
         judgeConfig: { count, names },
       });
+
+      const allocations = Object.keys(codeLettersMap).map((participantId) => ({
+        participantId,
+        codeLetter: codeLettersMap[participantId]
+      }));
+
+      if (allocations.length > 0) {
+        await ParticipantApi.bulkAllocateCodeLetters(comp._id, allocations);
+      }
+
+      fetchParticipantsForCompetition(comp._id);
+      fetchCompetitionsData();
     } catch (error) {
       console.error("Failed to update judge config", error);
     } finally {
@@ -149,12 +169,37 @@ const Page = () => {
                   <div>
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                       {comp.name}
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ml-2 ${comp.status === "completed" ? "bg-green-100 text-green-800 hover:bg-green-100" : comp.status === "ongoing" ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "bg-amber-100 text-amber-800 hover:bg-amber-100"}`}
+                      <select
+                        onClick={(e) => e.stopPropagation()}
+                        value={comp.status || "pending"}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          setCompetitions((prev) =>
+                            prev.map((c) =>
+                              c._id === comp._id ? { ...c, status: newStatus } : c
+                            )
+                          );
+                          if (selectedCompetition?._id === comp._id) {
+                            setSelectedCompetition({ ...comp, status: newStatus });
+                          }
+                          try {
+                            await CompetitionApi.updateCompetition(comp._id, { status: newStatus });
+                          } catch (err) {
+                            console.error("Failed to update status", err);
+                          }
+                        }}
+                        className={`text-xs ml-2 rounded-md border px-2 py-1 outline-none appearance-none cursor-pointer ${
+                          comp.status === "completed"
+                            ? "bg-green-100 text-green-800 border-green-200"
+                            : comp.status === "ongoing"
+                            ? "bg-blue-100 text-blue-800 border-blue-200"
+                            : "bg-amber-100 text-amber-800 border-amber-200"
+                        }`}
                       >
-                        {comp.status || "pending"}
-                      </Badge>
+                        <option value="pending" className="bg-white text-dark">pending</option>
+                        <option value="ongoing" className="bg-white text-dark">ongoing</option>
+                        <option value="completed" className="bg-white text-dark">completed</option>
+                      </select>
                     </h3>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge variant="outline" className="text-xs">
@@ -228,7 +273,7 @@ const Page = () => {
 
                             {Array(comp.judgeConfig?.count || 1).fill("").map(
                               (_, i: number) => {
-                                const name = comp.judgeConfig?.names?.[i] || `Judge ${i + 1}`;
+                                const name = comp.judgeConfig?.names?.[i] ?? `Judge ${i + 1}`;
                                 return (
                                 <div key={i} className="space-y-1">
                                   <label className="text-xs text-muted-foreground">
@@ -267,7 +312,7 @@ const Page = () => {
                             <div className="flex items-end pb-1">
                               <button
                                 onClick={() =>
-                                  saveJudgeConfig(
+                                  saveAllConfig(
                                     comp,
                                     comp.judgeConfig?.count || 1,
                                     comp.judgeConfig?.names || ["Judge 1"],
@@ -276,7 +321,7 @@ const Page = () => {
                                 disabled={updatingConfig}
                                 className="flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
                               >
-                                {updatingConfig ? "Syncing..." : "Sync Judge"}
+                                {updatingConfig ? "Saving..." : "Save Configuration"}
                               </button>
                             </div>
                           </div>
@@ -285,6 +330,8 @@ const Page = () => {
                         <ParticipantsTable
                           data={data}
                           competition={comp}
+                          codeLettersMap={codeLettersMap}
+                          setCodeLettersMap={setCodeLettersMap}
                           fetchParticipants={() =>
                             fetchParticipantsForCompetition(comp._id)
                           }

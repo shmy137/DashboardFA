@@ -23,10 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-export function ParticipantsTable({ data = [], fetchParticipants, competition }: any) {
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [codeLetter, setCodeLetter] = useState("");
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+export function ParticipantsTable({ data = [], fetchParticipants, competition, codeLettersMap, setCodeLettersMap }: any) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [teams, setTeams] = useState<any[]>([]);
   const [addForm, setAddForm] = useState({ name: "", teamId: "", className: "" });
@@ -42,27 +39,7 @@ export function ParticipantsTable({ data = [], fetchParticipants, competition }:
     }).catch(console.error);
   }, []);
 
-  const handleEdit = (participant: any) => {
-    setEditingId(participant._id);
-    setCodeLetter(participant.codeLetter || "");
-  };
-
-  const handleSave = async (id: string) => {
-    try {
-      setLoadingId(id);
-      await ParticipantApi.allocateCodeLetter(id, codeLetter);
-      toast.success("Code letter allocated successfully");
-      setEditingId(null);
-      if (fetchParticipants) fetchParticipants();
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (error) {
-      toast.error("Failed to allocate code letter");
-    } finally {
-      setLoadingId(null);
-    }
-  };
+  // Code letters are managed by the parent via codeLettersMap
 
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,9 +62,6 @@ export function ParticipantsTable({ data = [], fetchParticipants, competition }:
         setIsAddOpen(false);
         setAddForm({ name: "", teamId: "", className: "" });
         if (fetchParticipants) fetchParticipants();
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
       } else {
         toast.error(res?.data?.message || "Failed to add participant");
       }
@@ -115,7 +89,6 @@ export function ParticipantsTable({ data = [], fetchParticipants, competition }:
             <TableHead className="min-w-30 pl-5 text-left sm:pl-6 xl:pl-7.5">Name</TableHead>
             <TableHead className="min-w-30 pl-5 text-left sm:pl-6 xl:pl-7.5">Team</TableHead>
             <TableHead className="min-w-30 pl-5 text-left sm:pl-6 xl:pl-7.5">Code Letter</TableHead>
-            <TableHead className="pr-5 text-right sm:pr-6 xl:pr-7.5">Action</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -132,50 +105,17 @@ export function ParticipantsTable({ data = [], fetchParticipants, competition }:
                 <div className="text-muted-foreground text-sm">{d.teamId?.name || "-"}</div>
               </TableCell>
               <TableCell className="pl-5 text-left sm:pl-6 xl:pl-7.5">
-                {editingId === d._id ? (
-                  <Input 
-                    value={codeLetter} 
-                    onChange={(e) => setCodeLetter(e.target.value)} 
-                    placeholder="Enter code letter"
-                    className="max-w-[200px]"
-                  />
-                ) : (
-                  <div>{d.codeLetter || <span className="text-muted-foreground italic">Not allocated</span>}</div>
-                )}  
-              </TableCell>
-              <TableCell className="pr-5 text-right sm:pr-6 xl:pr-7.5">
-                {editingId === d._id ? (
-                  <div className="flex justify-end gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setEditingId(null)}
-                      disabled={loadingId === d._id}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleSave(d._id)}
-                      disabled={loadingId === d._id}
-                    >
-                      {loadingId === d._id ? "Saving..." : "Save"}
-                    </Button>
-                  </div>
-                ) : (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleEdit(d)}
-                  >
-                    Allocate
-                  </Button>
-                )}
+                <Input 
+                  value={codeLettersMap ? (codeLettersMap[d._id] || "") : ""}
+                  onChange={(e) => setCodeLettersMap && setCodeLettersMap({ ...codeLettersMap, [d._id]: e.target.value })} 
+                  placeholder="Enter code letter"
+                  className="max-w-[200px]"
+                />
               </TableCell>
             </TableRow>
           )) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+              <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
                 No participants found.
               </TableCell>
             </TableRow>

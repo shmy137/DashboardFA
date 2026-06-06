@@ -126,9 +126,9 @@ const EvaluationPage = () => {
                       {comp.name}
                       <Badge
                         variant="secondary"
-                        className={`text-xs ml-2 ${comp.status === "completed" ? "bg-green-100 text-green-800 hover:bg-green-100" : comp.status === "ongoing" ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "bg-amber-100 text-amber-800 hover:bg-amber-100"}`}
+                        className={`text-xs ml-2 ${comp.status === "completed" ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-amber-100 text-amber-800 hover:bg-amber-100"}`}
                       >
-                        {comp.status || "pending"}
+                        {comp.status === "completed" ? "completed" : "pending"}
                       </Badge>
                     </h3>
                     <div className="flex items-center gap-2 mt-2">

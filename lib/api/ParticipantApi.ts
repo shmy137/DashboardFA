@@ -10,8 +10,11 @@ export const ParticipantApi = {
   getParticipantsByCompetition: async (competitionId: string) => {
     return await axiosConfig.get(`participants/get-by-competition/${competitionId}`);
   },
-  allocateCodeLetter: async (id: string, codeLetter: string) => {
-    return await axiosConfig.post(`participants/allocate/${id}`, { codeLetter });
+  allocateCodeLetter: async (id: string, codeLetter: string, competitionId: string) => {
+    return await axiosConfig.post(`participants/allocate/${id}`, { codeLetter, competitionId });
+  },
+  bulkAllocateCodeLetters: async (competitionId: string, allocations: any[]) => {
+    return await axiosConfig.post("participants/bulk-allocate", { competitionId, allocations });
   },
   createParticipant: async (data: any) => {
     return await axiosConfig.post("participants/create", data);

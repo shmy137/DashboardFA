@@ -353,12 +353,12 @@ export function ResultTable({ results = [], fetchResults }: any) {
                             </span>
                           </TableCell>
                           <TableCell>
-                            {det.participantId?.codeLetter ? (
+                            {det.participantId?.codeLetters?.find((c: any) => c.competitionId === selectedCompId)?.codeLetter ? (
                               <Badge
                                 variant="outline"
                                 className="bg-primary/5 text-primary border-primary/20"
                               >
-                                {det.participantId.codeLetter}
+                                {det.participantId.codeLetters.find((c: any) => c.competitionId === selectedCompId)?.codeLetter}
                               </Badge>
                             ) : (
                               "-"

@@ -40,6 +40,7 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
                  basePoints: result.basePoints?.toString() || "0",
                  gracePoints: result.gracePoints?.toString() || "0",
                  grade: result.grade || "",
+                 isUploaded: true,
                };
              }
            });
@@ -160,13 +161,16 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
               <TableHead>Grace Points</TableHead>
               <TableHead className="text-center">Total Marks</TableHead>
               <TableHead>Grade</TableHead>
-              <TableHead className="pr-5 text-right sm:pr-6 xl:pr-7.5">Status</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {Array.isArray(data) && data.length > 0 ? (
-              data.map((d: any) => {
+              [...data].sort((a: any, b: any) => {
+                const codeA = a.codeLetters?.find((c: any) => c.competitionId === competitionId)?.codeLetter || "";
+                const codeB = b.codeLetters?.find((c: any) => c.competitionId === competitionId)?.codeLetter || "";
+                return codeA.localeCompare(codeB, undefined, { numeric: true });
+              }).map((d: any) => {
                 const evalData = evaluations[d._id] || {
                   judgeMarks: {},
                   basePoints: "0",
@@ -185,6 +189,7 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
                 const basePointsNum = parseFloat(evalData.basePoints) || 0;
                 const gracePointsNum = parseFloat(evalData.gracePoints) || 0;
                 const totalMarks = basePointsNum + gracePointsNum;
+                const compCodeLetter = d.codeLetters?.find((c: any) => c.competitionId === competitionId)?.codeLetter || "";
 
                 return (
                   <TableRow
@@ -192,9 +197,9 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
                     key={d._id}
                   >
                     <TableCell className="pl-5 text-left sm:pl-6 xl:pl-7.5">
-                      {d.codeLetter ? (
+                      {compCodeLetter ? (
                         <Badge variant="outline" className="text-sm font-bold bg-primary/10 text-primary border-primary/20">
-                          {d.codeLetter}
+                          {compCodeLetter}
                         </Badge>
                       ) : (
                         <span className="text-muted-foreground italic text-sm">Not allocated</span>
@@ -209,7 +214,7 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
                           value={evalData.judgeMarks[idx] || ""}
                           onChange={(e) => handleJudgeMarkChange(d._id, idx, e.target.value)}
                           className="w-24"
-                          disabled={!d.codeLetter}
+                          disabled={!compCodeLetter}
                         />
                       </TableCell>
                     ))}
@@ -225,7 +230,7 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
                         value={evalData.basePoints}
                         onChange={(e) => handleEvaluationChange(d._id, "basePoints", e.target.value)}
                         className="flex h-10 w-24 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-                        disabled={!d.codeLetter}
+                        disabled={!compCodeLetter}
                       >
                         <option value="0">0</option>
                         <option value="1">1</option>
@@ -237,19 +242,19 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
                     <TableCell>
                       <Input 
                         type="number" 
-                        max="10"
+                        min="0"
                         placeholder="Grace" 
                         value={evalData.gracePoints}
                         onChange={(e) => {
                           const val = e.target.value;
-                          if (parseFloat(val) <= 10 || val === "") {
+                          if (parseFloat(val) >= 0 || val === "") {
                              handleEvaluationChange(d._id, "gracePoints", val);
                           } else {
-                             toast.error("Grace points maximum is 10.");
+                             toast.error("Negative grace points are not allowed.");
                           }
                         }}
                         className="w-24"
-                        disabled={!d.codeLetter}
+                        disabled={!compCodeLetter}
                       />
                     </TableCell>
 
@@ -262,7 +267,7 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
                         value={evalData.grade}
                         onChange={(e) => handleEvaluationChange(d._id, "grade", e.target.value)}
                         className="flex h-10 w-24 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-                        disabled={!d.codeLetter}
+                        disabled={!compCodeLetter}
                       >
                         <option value="">Select</option>
                         <option value="A+">A+</option>
@@ -271,22 +276,12 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
                         <option value="C">C</option>
                       </select>
                     </TableCell>
-
-                    <TableCell className="pr-5 text-right sm:pr-6 xl:pr-7.5">
-                      {totalMarks > 0 && evalData.grade ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100">Evaluated</Badge>
-                      ) : d.codeLetter ? (
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 hover:bg-blue-100">Ready</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">Pending</Badge>
-                      )}
-                    </TableCell>
                   </TableRow>
                 );
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={6 + judgeConfig.names.length + (judgeConfig.names.length > 1 ? 1 : 0)} className="text-center py-6 text-muted-foreground">
+                <TableCell colSpan={5 + judgeConfig.names.length + (judgeConfig.names.length > 1 ? 1 : 0)} className="text-center py-6 text-muted-foreground">
                   No participants found for this competition.
                 </TableCell>
               </TableRow>

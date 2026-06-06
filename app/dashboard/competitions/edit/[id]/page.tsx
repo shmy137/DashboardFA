@@ -210,6 +210,7 @@ const EditCompetitionForm = () => {
               >
                 <option value="stage">Stage</option>
                 <option value="off stage">Off Stage</option>
+                <option value="general">General</option>
               </select>
             </div>
           </CardContent>
