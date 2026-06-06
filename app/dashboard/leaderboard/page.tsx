@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { LeaderboardApi } from "@/lib/api/LeaderboardApi";
 import { CompetitionApi } from "@/lib/api/CompetitionApi";
+import { ResultApi } from "@/lib/api/ResultApi";
 import { LeaderboardTable } from "./_components/leaderboard-table";
 
 const LeaderboardPage = () => {
@@ -11,9 +12,10 @@ const LeaderboardPage = () => {
 
   const fetchLeaderboardsAndStats = async () => {
     try {
-      const [resLb, resComp] = await Promise.all([
+      const [resLb, resComp, resResults] = await Promise.all([
         LeaderboardApi.getAllLeaderboards(),
-        CompetitionApi.getAllcompetitions()
+        CompetitionApi.getAllcompetitions(),
+        ResultApi.getAllResults()
       ]);
 
       const responseData = resLb?.data;
@@ -26,12 +28,20 @@ const LeaderboardPage = () => {
       if (Array.isArray(resComp?.data)) compData = resComp.data;
       else if (Array.isArray(resComp?.data?.data)) compData = resComp.data.data;
       
-      const publishedCount = compData.filter((c) => c.isPublished).length;
-      const completedCount = compData.filter((c) => c.status === "completed").length;
+      let resultsData: any[] = [];
+      if (Array.isArray(resResults?.data)) resultsData = resResults.data;
+      else if (Array.isArray(resResults?.data?.data)) resultsData = resResults.data.data;
+
+      const compIdsWithResults = new Set();
+      resultsData.forEach((r: any) => {
+        if (r.competitionId) compIdsWithResults.add(r.competitionId);
+      });
+
+      const publishedCount = compData.filter((c) => c.isPublished && compIdsWithResults.has(c._id)).length;
       
       setStats({
         published: publishedCount,
-        total: completedCount > 0 ? completedCount : compData.length,
+        total: compIdsWithResults.size,
       });
 
     } catch (error) {
