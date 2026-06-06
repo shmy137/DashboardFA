@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, Download } from "lucide-react";
 import * as XLSX from "xlsx";
 
@@ -145,17 +146,100 @@ export function ResultTable({ results = [], fetchResults }: any) {
     }
   };
 
+  const publishedComps = groupedCompetitions.filter(
+    (compId) => competitionsMap[compId]?.isPublished
+  );
+  const unpublishedComps = groupedCompetitions.filter(
+    (compId) => !competitionsMap[compId]?.isPublished
+  );
+
   const selectedCompData = selectedCompId
     ? competitionsMap[selectedCompId]
     : null;
+
+  const renderTableContent = (comps: string[]) => (
+    <Table>
+      <TableHeader>
+        <TableRow className="border-t text-base [&>th]:h-auto [&>th]:py-3 sm:[&>th]:py-4.5">
+          <TableHead className="w-16 pl-5 text-left sm:pl-6 xl:pl-7.5">SN</TableHead>
+          <TableHead className="text-left">Competition</TableHead>
+          <TableHead className="text-left">Category</TableHead>
+          <TableHead className="text-left">Publish Status</TableHead>
+          <TableHead className="pr-5 text-right sm:pr-6 xl:pr-7.5">Action</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {comps.length > 0 ? (
+          comps.map((compId, idx) => {
+            const comp = competitionsMap[compId];
+            return (
+              <TableRow className="text-base font-medium text-dark dark:text-white" key={compId}>
+                <TableCell className="pl-5 text-left sm:pl-6 xl:pl-7.5">{idx + 1}</TableCell>
+                <TableCell><div>{comp?.name || compId}</div></TableCell>
+                <TableCell>{comp?.category && <Badge variant="outline">{comp.category}</Badge>}</TableCell>
+                <TableCell>
+                  <select
+                    value={comp?.isPublished ? "published" : "not_published"}
+                    onChange={async (e) => {
+                      const isPublished = e.target.value === "published";
+                      try {
+                        const res = await CompetitionApi.updateCompetition(compId, { isPublished });
+                        if (res.data?.success) {
+                          toast.success(`Competition is ${isPublished ? "published" : "unpublished"}`);
+                          setCompetitionsMap((prev) => ({
+                            ...prev,
+                            [compId]: { ...prev[compId], isPublished },
+                          }));
+                        } else {
+                          toast.error("Failed to update status");
+                        }
+                      } catch (error) {
+                        toast.error("An error occurred");
+                      }
+                    }}
+                    className={`flex h-9 w-[140px] rounded-md border px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      comp?.isPublished
+                        ? "bg-green-50 border-green-200 text-green-700"
+                        : "bg-gray-50 border-gray-200 text-gray-700"
+                    }`}
+                  >
+                    <option value="not_published">Not Published</option>
+                    <option value="published">Published</option>
+                  </select>
+                </TableCell>
+                <TableCell className="pr-5 text-right sm:pr-6 xl:pr-7.5">
+                  <button
+                    className="flex items-center justify-end gap-2 text-primary hover:text-primary/80 ml-auto"
+                    onClick={() => handleView(compId)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>View</span>
+                  </button>
+                </TableCell>
+              </TableRow>
+            );
+          })
+        ) : (
+          <TableRow>
+            <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+              No results found in this section.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
 
   return (
     <>
       <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card">
         <div className="px-6 py-4 sm:px-7 sm:py-5 xl:px-8.5">
-          <div className="flex w-full items-center justify-between">
-            <h2 className="text-2xl font-bold text-dark dark:text-white">
+          <div className="flex w-full items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-dark dark:text-white flex items-center gap-3">
               Results
+              <span className="text-sm font-medium text-muted-foreground bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                {publishedComps.length} of {groupedCompetitions.length} Published
+              </span>
             </h2>
             <button
               onClick={handleExport}
@@ -166,105 +250,20 @@ export function ResultTable({ results = [], fetchResults }: any) {
               {exporting ? "Exporting..." : "Download Result"}
             </button>
           </div>
+
+          <Tabs defaultValue="unpublished" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-6">
+              <TabsTrigger value="unpublished">Unpublished Results</TabsTrigger>
+              <TabsTrigger value="published">Published Results</TabsTrigger>
+            </TabsList>
+            <TabsContent value="unpublished">
+              {renderTableContent(unpublishedComps)}
+            </TabsContent>
+            <TabsContent value="published">
+              {renderTableContent(publishedComps)}
+            </TabsContent>
+          </Tabs>
         </div>
-
-        <Table>
-          <TableHeader>
-            <TableRow className="border-t text-base [&>th]:h-auto [&>th]:py-3 sm:[&>th]:py-4.5">
-              <TableHead className="w-16 pl-5 text-left sm:pl-6 xl:pl-7.5">
-                SN
-              </TableHead>
-              <TableHead className="text-left">Competition</TableHead>
-              <TableHead className="text-left">Category</TableHead>
-              <TableHead className="text-left">Publish Status</TableHead>
-              <TableHead className="pr-5 text-right sm:pr-6 xl:pr-7.5">
-                Action
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {groupedCompetitions.length > 0 ? (
-              groupedCompetitions.map((compId, idx) => {
-                const comp = competitionsMap[compId];
-
-                return (
-                  <TableRow
-                    className="text-base font-medium text-dark dark:text-white"
-                    key={compId}
-                  >
-                    <TableCell className="pl-5 text-left sm:pl-6 xl:pl-7.5">
-                      {idx + 1}
-                    </TableCell>
-                    <TableCell>
-                      <div>{comp?.name || compId}</div>
-                    </TableCell>
-                    <TableCell>
-                      {comp?.category && (
-                        <Badge variant="outline">{comp.category}</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <select
-                        value={
-                          comp?.isPublished ? "published" : "not_published"
-                        }
-                        onChange={async (e) => {
-                          const isPublished = e.target.value === "published";
-                          try {
-                            const res = await CompetitionApi.updateCompetition(
-                              compId,
-                              { isPublished },
-                            );
-                            if (res.data?.success) {
-                              toast.success(
-                                `Competition is ${isPublished ? "published" : "unpublished"}`,
-                              );
-                              setCompetitionsMap((prev) => ({
-                                ...prev,
-                                [compId]: { ...prev[compId], isPublished },
-                              }));
-                            } else {
-                              toast.error("Failed to update status");
-                            }
-                          } catch (error) {
-                            toast.error("An error occurred");
-                          }
-                        }}
-                        className={`flex h-9 w-[140px] rounded-md border px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
-                          comp?.isPublished
-                            ? "bg-green-50 border-green-200 text-green-700"
-                            : "bg-gray-50 border-gray-200 text-gray-700"
-                        }`}
-                      >
-                        <option value="not_published">Not Published</option>
-                        <option value="published">Published</option>
-                      </select>
-                    </TableCell>
-                    <TableCell className="pr-5 text-right sm:pr-6 xl:pr-7.5">
-                      <button
-                        className="flex items-center justify-end gap-2 text-primary hover:text-primary/80 ml-auto"
-                        onClick={() => handleView(compId)}
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>View</span>
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="text-center py-6 text-muted-foreground"
-                >
-                  No competitions have completed results yet.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
       </div>
 
       <Dialog

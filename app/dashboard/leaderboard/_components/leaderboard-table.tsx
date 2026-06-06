@@ -10,13 +10,18 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-export function LeaderboardTable({ leaderboards = [] }: any) {
+export function LeaderboardTable({ leaderboards = [], stats }: any) {
   return (
     <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card">
       <div className="px-6 py-4 sm:px-7 sm:py-5 xl:px-8.5">
-        <div className="flex w-full justify-between">
-          <h2 className="text-2xl font-bold text-dark dark:text-white">
+        <div className="flex w-full justify-between items-center">
+          <h2 className="text-2xl font-bold text-dark dark:text-white flex items-center gap-3">
             Leaderboard
+            {stats && (
+              <span className="text-sm font-medium text-muted-foreground bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                {stats.published} of {stats.total} Results Published
+              </span>
+            )}
           </h2>
         </div>
       </div>
