@@ -1,10 +1,10 @@
 import React from 'react';
 import EditParticipantForm from './_components/edit-participant-form';
 
-const Page = ({ params }: { params: { id: string } }) => {
+const Page = () => {
   return (
     <div>
-      <EditParticipantForm id={params.id} />
+      <EditParticipantForm />
     </div>
   );
 };

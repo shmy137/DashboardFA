@@ -166,6 +166,9 @@ const EditGreenRoomForm = () => {
                 <option value="stage2">Stage 2</option>
                 <option value="stage3">Stage 3</option>
                 <option value="stage4">Stage 4</option>
+                <option value="stage5">Stage 5</option>
+                <option value="Girls">Girls</option>
+
               </select>
             </div>
           </CardContent>

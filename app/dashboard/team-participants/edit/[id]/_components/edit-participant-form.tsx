@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +27,10 @@ import { CategoryApi } from "@/lib/api/CategoryApi";
 import { CompetitionApi } from "@/lib/api/CompetitionApi";
 import { ParticipantApi } from "@/lib/api/ParticipantApi";
 
-const EditParticipantForm = ({ id }: { id: string }) => {
+const EditParticipantForm = () => {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);

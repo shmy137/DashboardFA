@@ -119,7 +119,7 @@ const AddParticipantForm = () => {
 
       const res = await ParticipantApi.createParticipant(payload);
       if (res?.data?.success) {
-        toast.success(res.data.message || "Participant added successfully");
+        toast.success("participants are added");
         router.push("/dashboard/team-participants");
         router.refresh();
       } else {
@@ -213,7 +213,7 @@ const AddParticipantForm = () => {
                       const isChecked = formData.competitionIds.includes(comp._id);
                       const isMaxReached = formData.competitionIds.length >= 4 && !isChecked;
                       
-                      return (
+                      return (  
                         <div
                           key={comp._id}
                           className={`flex flex-row items-start space-x-3 space-y-0 p-3 rounded border transition-colors ${

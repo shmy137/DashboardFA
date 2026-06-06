@@ -25,4 +25,7 @@ export const ParticipantApi = {
   getParticipantsByTeam: async (teamId: string) => {
     return await axiosConfig.get(`participants/get-by-team/${teamId}`);
   },
+  addParticipantFromGreenRoom: async (data: any) => {
+    return await axiosConfig.post("participants/greenroom-add", data);
+  },
 };

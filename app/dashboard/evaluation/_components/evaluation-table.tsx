@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ResultApi } from "@/lib/api/ResultApi";
 
-export function EvaluationTable({ data = [], competitionId, competition }: { data: any[], competitionId?: string, competition?: any }) {
+export function EvaluationTable({ data = [], competitionId, competition, onSuccess }: { data: any[], competitionId?: string, competition?: any, onSuccess?: () => void }) {
   const [judgeConfig, setJudgeConfig] = useState<{ count: number, names: string[] }>({ count: 1, names: ["Judge 1"] });
   const [evaluations, setEvaluations] = useState<{
     [key: string]: {
@@ -27,11 +27,7 @@ export function EvaluationTable({ data = [], competitionId, competition }: { dat
   }>({});
   const [isUploading, setIsUploading] = useState(false);
 
-  useEffect(() => {
-    if (competition?.judgeConfig) {
-      setJudgeConfig(competition.judgeConfig);
-    }
-    
+  const fetchResults = () => {
     if (competitionId) {
       ResultApi.getResultsByCompetition(competitionId).then((res) => {
         if (res.data?.success && Array.isArray(res.data.data)) {
@@ -51,6 +47,13 @@ export function EvaluationTable({ data = [], competitionId, competition }: { dat
         }
       }).catch(err => console.error("Failed to fetch results", err));
     }
+  };
+
+  useEffect(() => {
+    if (competition?.judgeConfig) {
+      setJudgeConfig(competition.judgeConfig);
+    }
+    fetchResults();
   }, [competition, competitionId]);
 
   const handleEvaluationChange = (participantId: string, field: string, value: string) => {
@@ -104,16 +107,20 @@ export function EvaluationTable({ data = [], competitionId, competition }: { dat
         const gracePointsNum = parseFloat(pData.gracePoints) || 0;
         const totalMarks = basePointsNum + gracePointsNum;
         
-        payload[participantId] = {
-           ...pData,
-           totalMarks,
-           teamId: participant.teamId?._id || participant.teamId
-        };
+        if (totalMarks > 0 || pData.grade || Object.keys(pData.judgeMarks).length > 0) {
+          payload[participantId] = {
+             ...pData,
+             totalMarks,
+             teamId: participant.teamId?._id || participant.teamId
+          };
+        }
       });
       
       const res = await ResultApi.bulkEvaluate(competitionId, payload);
       if (res.data?.success) {
-        toast.success("Marks uploaded successfully!");
+        toast.success("mark is uploaded");
+        fetchResults();
+        if (onSuccess) onSuccess();
       } else {
         toast.error(res.data?.message || "Failed to upload marks.");
       }

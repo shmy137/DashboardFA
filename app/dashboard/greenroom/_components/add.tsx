@@ -26,7 +26,9 @@ const GreenRoomForm = () => {
     stageNo: "stage1",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -51,14 +53,18 @@ const GreenRoomForm = () => {
       <Card className="w-full max-w-xl mx-auto mt-6">
         <form onSubmit={handleSubmit}>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Add Green Room User</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Add Green Room User
+            </CardTitle>
             <CardDescription>
               Create a new green room user account.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name <span className="text-destructive">*</span></Label>
+              <Label htmlFor="name">
+                Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="name"
                 name="name"
@@ -69,7 +75,9 @@ const GreenRoomForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
+              <Label htmlFor="email">
+                Email <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -81,7 +89,9 @@ const GreenRoomForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
+              <Label htmlFor="password">
+                Password <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="password"
                 name="password"
@@ -93,7 +103,9 @@ const GreenRoomForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="stageNo">Assigned Stage <span className="text-destructive">*</span></Label>
+              <Label htmlFor="stageNo">
+                Assigned Stage <span className="text-destructive">*</span>
+              </Label>
               <select
                 id="stageNo"
                 name="stageNo"
@@ -106,8 +118,8 @@ const GreenRoomForm = () => {
                 <option value="stage2">Stage 2</option>
                 <option value="stage3">Stage 3</option>
                 <option value="stage4">Stage 4</option>
+                <option value="stage5">Stage 5</option>
                 <option value="Girls">Girls</option>
-
               </select>
             </div>
           </CardContent>

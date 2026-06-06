@@ -24,11 +24,16 @@ const Page = () => {
       let finalComps = [];
       if (Array.isArray(compData)) finalComps = compData;
       else if (Array.isArray(compData?.data)) finalComps = compData.data;
-      else if (Array.isArray(compData?.competitions)) finalComps = compData.competitions;
-      else if (Array.isArray(compData?.allcompetitions)) finalComps = compData.allcompetitions;
-      else if (Array.isArray(compData?.data?.competitions)) finalComps = compData.data.competitions;
-      else if (Array.isArray(compData?.data?.allcompetitions)) finalComps = compData.data.allcompetitions;
-      else if (Array.isArray(compData?.data?.data)) finalComps = compData.data.data;
+      else if (Array.isArray(compData?.competitions))
+        finalComps = compData.competitions;
+      else if (Array.isArray(compData?.allcompetitions))
+        finalComps = compData.allcompetitions;
+      else if (Array.isArray(compData?.data?.competitions))
+        finalComps = compData.data.competitions;
+      else if (Array.isArray(compData?.data?.allcompetitions))
+        finalComps = compData.data.allcompetitions;
+      else if (Array.isArray(compData?.data?.data))
+        finalComps = compData.data.data;
       setCompetitions(Array.isArray(finalComps) ? finalComps : []);
     } catch (error) {
       console.error("Failed to fetch competitions", error);
@@ -40,7 +45,8 @@ const Page = () => {
   const fetchParticipantsForCompetition = async (competitionId: string) => {
     try {
       setLoadingParticipants(true);
-      const partRes = await ParticipantApi.getParticipantsByCompetition(competitionId);
+      const partRes =
+        await ParticipantApi.getParticipantsByCompetition(competitionId);
       const responseData = partRes?.data;
       let finalData = [];
       if (Array.isArray(responseData)) finalData = responseData;
@@ -68,19 +74,20 @@ const Page = () => {
   const saveJudgeConfig = async (comp: any, count: number, names: string[]) => {
     try {
       setUpdatingConfig(true);
-      
+
       const updatedComp = { ...comp };
       updatedComp.judgeConfig = { count, names };
-      
-      setCompetitions(prev => prev.map(c => c._id === comp._id ? updatedComp : c));
+
+      setCompetitions((prev) =>
+        prev.map((c) => (c._id === comp._id ? updatedComp : c)),
+      );
       if (selectedCompetition?._id === comp._id) {
         setSelectedCompetition(updatedComp);
       }
 
       await CompetitionApi.updateCompetition(comp._id, {
-         judgeConfig: { count, names }
+        judgeConfig: { count, names },
       });
-      
     } catch (error) {
       console.error("Failed to update judge config", error);
     } finally {
@@ -89,7 +96,8 @@ const Page = () => {
   };
 
   const filteredCompetitions = competitions.filter(
-    (c: any) => c.stageNo === selectedStage || (selectedStage === "stage1" && !c.stageNo)
+    (c: any) =>
+      c.stageNo === selectedStage || (selectedStage === "stage1" && !c.stageNo),
   );
 
   return (
@@ -109,17 +117,20 @@ const Page = () => {
             <option value="stage2">Stage 2</option>
             <option value="stage3">Stage 3</option>
             <option value="stage4">Stage 4</option>
-            
+            <option value="stage5">Stage 5</option>
+            <option value="Girls">Girls</option>
           </select>
         </div>
 
         {loading ? (
-          <div className="py-4 text-center text-muted-foreground">Loading competitions...</div>
+          <div className="py-4 text-center text-muted-foreground">
+            Loading competitions...
+          </div>
         ) : filteredCompetitions.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {filteredCompetitions.map((comp) => (
-              <div 
-                key={comp._id} 
+              <div
+                key={comp._id}
                 onClick={() => {
                   if (selectedCompetition?._id === comp._id) {
                     setSelectedCompetition(null);
@@ -129,8 +140,8 @@ const Page = () => {
                   }
                 }}
                 className={`p-4 border rounded-lg transition-colors cursor-pointer ${
-                  selectedCompetition?._id === comp._id 
-                    ? "bg-primary/5 border-primary col-span-1 sm:col-span-2 md:col-span-3" 
+                  selectedCompetition?._id === comp._id
+                    ? "bg-primary/5 border-primary col-span-1 sm:col-span-2 md:col-span-3"
                     : "bg-gray-50/50 hover:bg-gray-50"
                 }`}
               >
@@ -138,20 +149,27 @@ const Page = () => {
                   <div>
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                       {comp.name}
-                      <Badge variant="secondary" className={`text-xs ml-2 ${comp.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-100' : comp.status === 'ongoing' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : 'bg-amber-100 text-amber-800 hover:bg-amber-100'}`}>
-                        {comp.status || 'pending'}
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs ml-2 ${comp.status === "completed" ? "bg-green-100 text-green-800 hover:bg-green-100" : comp.status === "ongoing" ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "bg-amber-100 text-amber-800 hover:bg-amber-100"}`}
+                      >
+                        {comp.status || "pending"}
                       </Badge>
                     </h3>
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="outline" className="text-xs">{comp.category}</Badge>
-                      <Badge variant="secondary" className="text-xs bg-white">{comp.gender || "Boys"}</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {comp.category}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs bg-white">
+                        {comp.gender || "Boys"}
+                      </Badge>
                     </div>
                   </div>
                 </div>
 
                 {selectedCompetition?._id === comp._id && (
-                  <div 
-                    className="mt-6 pt-4 border-t border-primary/20 cursor-default" 
+                  <div
+                    className="mt-6 pt-4 border-t border-primary/20 cursor-default"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {loadingParticipants ? (
@@ -161,52 +179,100 @@ const Page = () => {
                     ) : (
                       <>
                         <div className="mb-6 p-4 border rounded-md bg-gray-50/30">
-                          <h4 className="font-medium mb-3 text-sm">Judge Configuration</h4>
-                          <p className="text-xs text-muted-foreground mb-4">Set the number of judges and their names. This will be automatically reflected in the Judge Panel.</p>
+                          <h4 className="font-medium mb-3 text-sm">
+                            Judge Configuration
+                          </h4>
+                          <p className="text-xs text-muted-foreground mb-4">
+                            Set the number of judges and their names. This will
+                            be automatically reflected in the Judge Panel.
+                          </p>
                           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <div className="space-y-1">
-                              <label className="text-xs text-muted-foreground">Number of Judges</label>
-                              <select 
+                              <label className="text-xs text-muted-foreground">
+                                Number of Judges
+                              </label>
+                              <select
                                 className="flex h-9 rounded-md border border-input bg-white px-3 py-1 text-sm"
                                 value={comp.judgeConfig?.count || 1}
                                 disabled={updatingConfig}
                                 onChange={(e) => {
                                   const count = parseInt(e.target.value);
-                                  const oldNames = comp.judgeConfig?.names || [];
-                                  const newNames = Array(count).fill("").map((_, i) => oldNames[i] || `Judge ${i + 1}`);
+                                  const oldNames =
+                                    comp.judgeConfig?.names || [];
+                                  const newNames = Array(count)
+                                    .fill("")
+                                    .map(
+                                      (_, i) => oldNames[i] || `Judge ${i + 1}`,
+                                    );
                                   const newComp = { ...comp };
-                                  newComp.judgeConfig = { count, names: newNames };
-                                  setCompetitions(prev => prev.map(c => c._id === comp._id ? newComp : c));
-                                  if (selectedCompetition?._id === comp._id) setSelectedCompetition(newComp);
+                                  newComp.judgeConfig = {
+                                    count,
+                                    names: newNames,
+                                  };
+                                  setCompetitions((prev) =>
+                                    prev.map((c) =>
+                                      c._id === comp._id ? newComp : c,
+                                    ),
+                                  );
+                                  if (selectedCompetition?._id === comp._id)
+                                    setSelectedCompetition(newComp);
                                 }}
                               >
-                                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <option key={n} value={n}>
+                                    {n}
+                                  </option>
+                                ))}
                               </select>
                             </div>
-                            
-                            {(comp.judgeConfig?.names || ["Judge 1"]).map((name: string, i: number) => (
-                              <div key={i} className="space-y-1">
-                                <label className="text-xs text-muted-foreground">Judge {i + 1} Name</label>
-                                <input 
-                                  type="text"
-                                  className="flex h-9 rounded-md border border-input bg-white px-3 py-1 text-sm w-32"
-                                  value={name}
-                                  disabled={updatingConfig}
-                                  onChange={(e) => {
-                                    const newNames = [...(comp.judgeConfig?.names || ["Judge 1"])];
-                                    newNames[i] = e.target.value;
-                                    const newComp = { ...comp };
-                                    newComp.judgeConfig = { count: comp.judgeConfig?.count || 1, names: newNames };
-                                    setCompetitions(prev => prev.map(c => c._id === comp._id ? newComp : c));
-                                    if (selectedCompetition?._id === comp._id) setSelectedCompetition(newComp);
-                                  }}
-                                />
-                              </div>
-                            ))}
-                            
+
+                            {Array(comp.judgeConfig?.count || 1).fill("").map(
+                              (_, i: number) => {
+                                const name = comp.judgeConfig?.names?.[i] || `Judge ${i + 1}`;
+                                return (
+                                <div key={i} className="space-y-1">
+                                  <label className="text-xs text-muted-foreground">
+                                    Judge {i + 1} Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    className="flex h-9 rounded-md border border-input bg-white px-3 py-1 text-sm w-32"
+                                    value={name}
+                                    disabled={updatingConfig}
+                                    onChange={(e) => {
+                                      const newNames = [
+                                        ...(comp.judgeConfig?.names || [
+                                          "Judge 1",
+                                        ]),
+                                      ];
+                                      newNames[i] = e.target.value;
+                                      const newComp = { ...comp };
+                                      newComp.judgeConfig = {
+                                        count: comp.judgeConfig?.count || 1,
+                                        names: newNames,
+                                      };
+                                      setCompetitions((prev) =>
+                                        prev.map((c) =>
+                                          c._id === comp._id ? newComp : c,
+                                        ),
+                                      );
+                                      if (selectedCompetition?._id === comp._id)
+                                        setSelectedCompetition(newComp);
+                                    }}
+                                  />
+                                </div>
+                              );
+                            })}
+
                             <div className="flex items-end pb-1">
-                              <button 
-                                onClick={() => saveJudgeConfig(comp, comp.judgeConfig?.count || 1, comp.judgeConfig?.names || ["Judge 1"])}
+                              <button
+                                onClick={() =>
+                                  saveJudgeConfig(
+                                    comp,
+                                    comp.judgeConfig?.count || 1,
+                                    comp.judgeConfig?.names || ["Judge 1"],
+                                  )
+                                }
                                 disabled={updatingConfig}
                                 className="flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
                               >
@@ -216,9 +282,12 @@ const Page = () => {
                           </div>
                         </div>
 
-                        <ParticipantsTable 
-                          data={data} 
-                          fetchParticipants={() => fetchParticipantsForCompetition(comp._id)} 
+                        <ParticipantsTable
+                          data={data}
+                          competition={comp}
+                          fetchParticipants={() =>
+                            fetchParticipantsForCompetition(comp._id)
+                          }
                         />
                       </>
                     )}

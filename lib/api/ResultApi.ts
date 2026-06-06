@@ -21,6 +21,10 @@ export const ResultApi = {
     return await axiosConfig.get("results/individual-points");
   },
 
+  getTopResultsExport: async function () {
+    return await axiosConfig.get("results/export-top");
+  },
+
   deleteResult: async function (id: any) {
     return await axiosConfig.delete(`results/delete/${id}`);
   },

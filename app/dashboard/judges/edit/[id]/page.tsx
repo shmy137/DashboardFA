@@ -38,7 +38,7 @@ const EditJudgeForm = () => {
   const [competitions, setCompetitions] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  
+
   const [formData, setFormData] = useState({
     competitionIds: [] as string[],
     name: "",
@@ -53,36 +53,49 @@ const EditJudgeForm = () => {
         const [compRes, catRes, judgeRes] = await Promise.all([
           CompetitionApi.getAllcompetitions(),
           CategoryApi.GetAllCategories(),
-          JudgesApi.getOneJudge(id)
+          JudgesApi.getOneJudge(id),
         ]);
-        
+
         const compData = compRes?.data;
         let finalComps = [];
         if (Array.isArray(compData)) finalComps = compData;
         else if (Array.isArray(compData?.data)) finalComps = compData.data;
-        else if (Array.isArray(compData?.competitions)) finalComps = compData.competitions;
-        else if (Array.isArray(compData?.allcompetitions)) finalComps = compData.allcompetitions;
-        else if (Array.isArray(compData?.data?.competitions)) finalComps = compData.data.competitions;
-        else if (Array.isArray(compData?.data?.allcompetitions)) finalComps = compData.data.allcompetitions;
-        else if (Array.isArray(compData?.data?.data)) finalComps = compData.data.data;
+        else if (Array.isArray(compData?.competitions))
+          finalComps = compData.competitions;
+        else if (Array.isArray(compData?.allcompetitions))
+          finalComps = compData.allcompetitions;
+        else if (Array.isArray(compData?.data?.competitions))
+          finalComps = compData.data.competitions;
+        else if (Array.isArray(compData?.data?.allcompetitions))
+          finalComps = compData.data.allcompetitions;
+        else if (Array.isArray(compData?.data?.data))
+          finalComps = compData.data.data;
         setCompetitions(Array.isArray(finalComps) ? finalComps : []);
 
         const catData = catRes?.data;
         let finalCats = [];
         if (Array.isArray(catData)) finalCats = catData;
         else if (Array.isArray(catData?.data)) finalCats = catData.data;
-        else if (Array.isArray(catData?.categories)) finalCats = catData.categories;
-        else if (Array.isArray(catData?.allcategories)) finalCats = catData.allcategories;
-        else if (Array.isArray(catData?.data?.categories)) finalCats = catData.data.categories;
-        else if (Array.isArray(catData?.data?.allcategories)) finalCats = catData.data.allcategories;
-        else if (Array.isArray(catData?.data?.data)) finalCats = catData.data.data;
+        else if (Array.isArray(catData?.categories))
+          finalCats = catData.categories;
+        else if (Array.isArray(catData?.allcategories))
+          finalCats = catData.allcategories;
+        else if (Array.isArray(catData?.data?.categories))
+          finalCats = catData.data.categories;
+        else if (Array.isArray(catData?.data?.allcategories))
+          finalCats = catData.data.allcategories;
+        else if (Array.isArray(catData?.data?.data))
+          finalCats = catData.data.data;
         setCategories(Array.isArray(finalCats) ? finalCats : []);
 
         // Load judge data
-        const judgeData = judgeRes?.data?.data?.[0] || judgeRes?.data?.data || judgeRes?.data;
+        const judgeData =
+          judgeRes?.data?.data?.[0] || judgeRes?.data?.data || judgeRes?.data;
         if (judgeData) {
           setFormData({
-            competitionIds: Array.isArray(judgeData.competitionIds) ? judgeData.competitionIds : [],
+            competitionIds: Array.isArray(judgeData.competitionIds)
+              ? judgeData.competitionIds
+              : [],
             name: judgeData.name || "",
             email: judgeData.email || "",
             password: judgeData.password || "",
@@ -101,7 +114,9 @@ const EditJudgeForm = () => {
     }
   }, [id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -111,7 +126,10 @@ const EditJudgeForm = () => {
       if (checked) {
         return { ...prev, competitionIds: [...prev.competitionIds, compId] };
       } else {
-        return { ...prev, competitionIds: prev.competitionIds.filter(id => id !== compId) };
+        return {
+          ...prev,
+          competitionIds: prev.competitionIds.filter((id) => id !== compId),
+        };
       }
     });
   };
@@ -138,7 +156,11 @@ const EditJudgeForm = () => {
   };
 
   if (initialLoading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading judge data...</div>;
+    return (
+      <div className="p-8 text-center text-muted-foreground">
+        Loading judge data...
+      </div>
+    );
   }
 
   return (
@@ -153,7 +175,9 @@ const EditJudgeForm = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2 pt-1">
-              <Label htmlFor="name">Judge Name <span className="text-destructive">*</span></Label>
+              <Label htmlFor="name">
+                Judge Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="name"
                 name="name"
@@ -165,12 +189,17 @@ const EditJudgeForm = () => {
             </div>
 
             <div className="space-y-4 rounded-md border p-4 bg-muted/20">
-              <p className="text-sm text-muted-foreground">The judge is automatically assigned to the competitions in their selected stage.</p>
+              <p className="text-sm text-muted-foreground">
+                The judge is automatically assigned to the competitions in their
+                selected stage.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
+                <Label htmlFor="email">
+                  Email <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -182,7 +211,9 @@ const EditJudgeForm = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
+                <Label htmlFor="password">
+                  Password <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="password"
                   name="password"
@@ -194,7 +225,9 @@ const EditJudgeForm = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stageNo">Assigned Stage <span className="text-destructive">*</span></Label>
+                <Label htmlFor="stageNo">
+                  Assigned Stage <span className="text-destructive">*</span>
+                </Label>
                 <select
                   id="stageNo"
                   name="stageNo"
@@ -207,6 +240,8 @@ const EditJudgeForm = () => {
                   <option value="stage2">Stage 2</option>
                   <option value="stage3">Stage 3</option>
                   <option value="stage4">Stage 4</option>
+                  <option value="stage5">Stage 5</option>
+                  <option value="Girls">Girls</option>
                 </select>
               </div>
             </div>

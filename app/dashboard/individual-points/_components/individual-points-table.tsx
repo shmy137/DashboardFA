@@ -9,9 +9,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Eye } from "lucide-react";
+import { useState } from "react";
 
 export function IndividualPointsTable({ individualPoints = [], title, description }: any) {
+  const [selectedDetails, setSelectedDetails] = useState<any>(null);
+
   return (
+    <>
     <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card">
       <div className="px-6 py-4 sm:px-7 sm:py-5 xl:px-8.5">
         <div className="flex flex-col w-full justify-between">
@@ -32,8 +43,11 @@ export function IndividualPointsTable({ individualPoints = [], title, descriptio
             </TableHead>
             <TableHead className="text-left">Participant</TableHead>
             <TableHead className="text-left">Team</TableHead>
+            <TableHead className="text-right">
+              Total Points
+            </TableHead>
             <TableHead className="pr-5 text-right sm:pr-6 xl:pr-7.5">
-              Total Grace Points
+              Action
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -62,8 +76,17 @@ export function IndividualPointsTable({ individualPoints = [], title, descriptio
                 <TableCell>
                   <div className="text-muted-foreground">{lb.teamName || "-"}</div>
                 </TableCell>
-                <TableCell className="pr-5 text-right sm:pr-6 xl:pr-7.5 font-bold text-primary">
+                <TableCell className="text-right font-bold text-primary">
                   {lb.totalPoints}
+                </TableCell>
+                <TableCell className="pr-5 text-right sm:pr-6 xl:pr-7.5">
+                  <button
+                    className="flex items-center justify-end gap-2 text-primary hover:text-primary/80 ml-auto"
+                    onClick={() => setSelectedDetails({ name: lb.participantName, details: lb.details })}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>View</span>
+                  </button>
                 </TableCell>
               </TableRow>
             ))
@@ -80,5 +103,42 @@ export function IndividualPointsTable({ individualPoints = [], title, descriptio
         </TableBody>
       </Table>
     </div>
+
+    <Dialog open={!!selectedDetails} onOpenChange={(open) => !open && setSelectedDetails(null)}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Point Distribution - {selectedDetails?.name}</DialogTitle>
+        </DialogHeader>
+        <div className="mt-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Competition</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead className="text-right">Points</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {selectedDetails?.details && selectedDetails.details.length > 0 ? (
+                selectedDetails.details.map((det: any, i: number) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium">{det.competitionName}</TableCell>
+                    <TableCell className="capitalize text-muted-foreground">{det.type}</TableCell>
+                    <TableCell className="text-right font-bold text-primary">{det.points || 0}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-4 text-muted-foreground">
+                    No points breakdown available.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

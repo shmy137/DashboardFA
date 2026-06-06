@@ -61,7 +61,7 @@ const data = {
       title: "Results",
       url: "/dashboard/result",
       icon: IconFolder,
-      role: ["admin"],
+      role: ["admin", "greenroom"],
     },
     {
       title: "Leaderboard",
@@ -91,7 +91,7 @@ const data = {
       title: "Competitions",
       url: "/dashboard/competitions",
       icon: IconFolder,
-      role: ["admin", "judge", "greenroom", "team"],
+      role: ["admin", "judge", "greenroom"],
     },
     {
       title: "Category",

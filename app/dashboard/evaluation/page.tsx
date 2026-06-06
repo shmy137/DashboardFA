@@ -23,11 +23,16 @@ const EvaluationPage = () => {
       let finalComps = [];
       if (Array.isArray(compData)) finalComps = compData;
       else if (Array.isArray(compData?.data)) finalComps = compData.data;
-      else if (Array.isArray(compData?.competitions)) finalComps = compData.competitions;
-      else if (Array.isArray(compData?.allcompetitions)) finalComps = compData.allcompetitions;
-      else if (Array.isArray(compData?.data?.competitions)) finalComps = compData.data.competitions;
-      else if (Array.isArray(compData?.data?.allcompetitions)) finalComps = compData.data.allcompetitions;
-      else if (Array.isArray(compData?.data?.data)) finalComps = compData.data.data;
+      else if (Array.isArray(compData?.competitions))
+        finalComps = compData.competitions;
+      else if (Array.isArray(compData?.allcompetitions))
+        finalComps = compData.allcompetitions;
+      else if (Array.isArray(compData?.data?.competitions))
+        finalComps = compData.data.competitions;
+      else if (Array.isArray(compData?.data?.allcompetitions))
+        finalComps = compData.data.allcompetitions;
+      else if (Array.isArray(compData?.data?.data))
+        finalComps = compData.data.data;
       setCompetitions(Array.isArray(finalComps) ? finalComps : []);
     } catch (error) {
       console.error("Failed to fetch competitions", error);
@@ -39,7 +44,8 @@ const EvaluationPage = () => {
   const fetchParticipantsForCompetition = async (competitionId: string) => {
     try {
       setLoadingParticipants(true);
-      const partRes = await ParticipantApi.getParticipantsByCompetition(competitionId);
+      const partRes =
+        await ParticipantApi.getParticipantsByCompetition(competitionId);
       const responseData = partRes?.data;
       let finalData = [];
       if (Array.isArray(responseData)) finalData = responseData;
@@ -65,7 +71,8 @@ const EvaluationPage = () => {
   }, []);
 
   const filteredCompetitions = competitions.filter(
-    (c: any) => c.stageNo === selectedStage || (selectedStage === "stage1" && !c.stageNo)
+    (c: any) =>
+      c.stageNo === selectedStage || (selectedStage === "stage1" && !c.stageNo),
   );
 
   return (
@@ -85,16 +92,20 @@ const EvaluationPage = () => {
             <option value="stage2">Stage 2</option>
             <option value="stage3">Stage 3</option>
             <option value="stage4">Stage 4</option>
+            <option value="stage5">Stage 5</option>
+            <option value="Girls">Girls</option>
           </select>
         </div>
 
         {loading ? (
-          <div className="py-4 text-center text-muted-foreground">Loading competitions...</div>
+          <div className="py-4 text-center text-muted-foreground">
+            Loading competitions...
+          </div>
         ) : filteredCompetitions.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {filteredCompetitions.map((comp) => (
-              <div 
-                key={comp._id} 
+              <div
+                key={comp._id}
                 onClick={() => {
                   if (selectedCompetition?._id === comp._id) {
                     setSelectedCompetition(null);
@@ -104,8 +115,8 @@ const EvaluationPage = () => {
                   }
                 }}
                 className={`p-4 border rounded-lg transition-colors cursor-pointer ${
-                  selectedCompetition?._id === comp._id 
-                    ? "bg-primary/5 border-primary col-span-1 sm:col-span-2 md:col-span-3" 
+                  selectedCompetition?._id === comp._id
+                    ? "bg-primary/5 border-primary col-span-1 sm:col-span-2 md:col-span-3"
                     : "bg-gray-50/50 hover:bg-gray-50"
                 }`}
               >
@@ -113,20 +124,27 @@ const EvaluationPage = () => {
                   <div>
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                       {comp.name}
-                      <Badge variant="secondary" className={`text-xs ml-2 ${comp.status === 'completed' ? 'bg-green-100 text-green-800 hover:bg-green-100' : comp.status === 'ongoing' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : 'bg-amber-100 text-amber-800 hover:bg-amber-100'}`}>
-                        {comp.status || 'pending'}
+                      <Badge
+                        variant="secondary"
+                        className={`text-xs ml-2 ${comp.status === "completed" ? "bg-green-100 text-green-800 hover:bg-green-100" : comp.status === "ongoing" ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "bg-amber-100 text-amber-800 hover:bg-amber-100"}`}
+                      >
+                        {comp.status || "pending"}
                       </Badge>
                     </h3>
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="outline" className="text-xs">{comp.category}</Badge>
-                      <Badge variant="secondary" className="text-xs bg-white">{comp.gender || "Boys"}</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {comp.category}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs bg-white">
+                        {comp.gender || "Boys"}
+                      </Badge>
                     </div>
                   </div>
                 </div>
 
                 {selectedCompetition?._id === comp._id && (
-                  <div 
-                    className="mt-6 pt-4 border-t border-primary/20 cursor-default" 
+                  <div
+                    className="mt-6 pt-4 border-t border-primary/20 cursor-default"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {loadingParticipants ? (
@@ -134,10 +152,13 @@ const EvaluationPage = () => {
                         Loading participants...
                       </div>
                     ) : (
-                      <EvaluationTable 
-                        data={data} 
+                      <EvaluationTable
+                        data={data}
                         competitionId={comp._id}
                         competition={comp}
+                        onSuccess={() => {
+                          fetchCompetitionsData();
+                        }}
                       />
                     )}
                   </div>

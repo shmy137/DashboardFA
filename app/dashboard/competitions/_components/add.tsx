@@ -36,8 +36,9 @@ const CompetitionForm = () => {
         const responseData = res?.data;
         let finalData = [];
         if (Array.isArray(responseData)) finalData = responseData;
-        else if (Array.isArray(responseData?.data)) finalData = responseData.data;
-        
+        else if (Array.isArray(responseData?.data))
+          finalData = responseData.data;
+
         setCategories(Array.isArray(finalData) ? finalData : []);
       } catch (error) {
         console.error("Failed to fetch categories", error);
@@ -46,7 +47,9 @@ const CompetitionForm = () => {
     fetchCategories();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -58,7 +61,7 @@ const CompetitionForm = () => {
     try {
       const res = await CompetitionApi.createCompetition(formData);
       console.log("Competition created:", res);
-      
+
       // Redirect back to Competition list and refresh data
       router.push("/dashboard/competitions");
       router.refresh();
@@ -74,14 +77,18 @@ const CompetitionForm = () => {
       <Card className="w-full max-w-2xl mx-auto mt-6">
         <form onSubmit={handleSubmit}>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold">Add New Competition</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Add New Competition
+            </CardTitle>
             <CardDescription>
               Create a new Competition by filling out the information below.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Competition Name <span className="text-destructive">*</span></Label>
+              <Label htmlFor="name">
+                Competition Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="name"
                 name="name"
@@ -91,9 +98,11 @@ const CompetitionForm = () => {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="categoryId">Category <span className="text-destructive">*</span></Label>
+              <Label htmlFor="categoryId">
+                Category <span className="text-destructive">*</span>
+              </Label>
               <select
                 id="categoryId"
                 name="categoryId"
@@ -102,7 +111,9 @@ const CompetitionForm = () => {
                 required
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="" disabled>Select a category</option>
+                <option value="" disabled>
+                  Select a category
+                </option>
                 {categories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
@@ -110,9 +121,11 @@ const CompetitionForm = () => {
                 ))}
               </select>
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="gender">Gender Section <span className="text-destructive">*</span></Label>
+              <Label htmlFor="gender">
+                Gender Section <span className="text-destructive">*</span>
+              </Label>
               <select
                 id="gender"
                 name="gender"
@@ -125,9 +138,11 @@ const CompetitionForm = () => {
                 <option value="Girls">Girls</option>
               </select>
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="stageNo">Stage Number <span className="text-destructive">*</span></Label>
+              <Label htmlFor="stageNo">
+                Stage Number <span className="text-destructive">*</span>
+              </Label>
               <select
                 id="stageNo"
                 name="stageNo"
@@ -140,12 +155,15 @@ const CompetitionForm = () => {
                 <option value="stage2">Stage 2</option>
                 <option value="stage3">Stage 3</option>
                 <option value="stage4">Stage 4</option>
+                <option value="stage5">Stage 5</option>
                 <option value="Girls">Girls</option>
               </select>
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="competitionType">Competition Type <span className="text-destructive">*</span></Label>
+              <Label htmlFor="competitionType">
+                Competition Type <span className="text-destructive">*</span>
+              </Label>
               <select
                 id="competitionType"
                 name="competitionType"
@@ -158,7 +176,6 @@ const CompetitionForm = () => {
                 <option value="off stage">Off Stage</option>
               </select>
             </div>
-            
           </CardContent>
           <CardFooter className="flex justify-between border-t p-6">
             <Button variant="outline" type="button" asChild>

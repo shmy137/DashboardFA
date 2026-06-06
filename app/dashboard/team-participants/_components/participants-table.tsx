@@ -12,8 +12,13 @@ import { ParticipantApi } from "@/lib/api/ParticipantApi";
 import { TrashIcon, EditIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import React from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { CategoryApi } from "@/lib/api/CategoryApi";
+import { Button } from "@/components/ui/button";
+import { DownloadIcon } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export function ParticipantTable({ participants = [], fetchParticipants }: any) {
   const DeleteFunction = async (id: string) => {
@@ -35,18 +40,140 @@ export function ParticipantTable({ participants = [], fetchParticipants }: any) 
     }
   };
 
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("teamParticipantsCategoryFilter");
+      if (saved) {
+        setSelectedCategory(saved);
+      }
+    }
+  }, []);
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedCategory(val);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("teamParticipantsCategoryFilter", val);
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await CategoryApi.GetAllCategories();
+        if (res.data?.success) {
+          let catData = res.data.data;
+          if (Array.isArray(catData)) {
+             setCategories(catData.map((c: any) => c.name).sort());
+          } else if (res.data?.categories && Array.isArray(res.data.categories)) {
+             setCategories(res.data.categories.map((c: any) => c.name).sort());
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const filteredParticipants = useMemo(() => {
+    if (!Array.isArray(participants)) return [];
+    if (selectedCategory === "All") return participants;
+    return participants.filter((p: any) => p.categoryId?.name === selectedCategory);
+  }, [participants, selectedCategory]);
+
+  const downloadPDF = () => {
+    if (!Array.isArray(participants) || participants.length === 0) {
+      toast.error("No participants to download");
+      return;
+    }
+
+    const doc = new jsPDF();
+    
+    // Group participants by category
+    const grouped: any = {};
+    participants.forEach((p: any) => {
+      const catName = p.categoryId?.name || "Unknown Category";
+      if (!grouped[catName]) {
+        grouped[catName] = [];
+      }
+      grouped[catName].push(p);
+    });
+
+    let currentY = 14;
+    doc.setFontSize(18);
+    doc.text("Team Participants Roster", 14, currentY);
+    currentY += 10;
+
+    Object.keys(grouped).sort().forEach((catName) => {
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text(`Category: ${catName}`, 14, currentY);
+      currentY += 6;
+
+      const tableData = grouped[catName].map((p: any) => {
+        const compNames = p.competitionIds?.map((c: any) => c.name).join(", ") || "-";
+        return [p.name, p.className, compNames];
+      });
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Name", "Class", "Competitions"]],
+        body: tableData,
+        theme: "grid",
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [65, 84, 241] }, // Primary color
+        margin: { left: 14 },
+      });
+
+      currentY = (doc as any).lastAutoTable.finalY + 15;
+      
+      if (currentY > 270) {
+        doc.addPage();
+        currentY = 14;
+      }
+    });
+
+    doc.save("team_participants.pdf");
+  };
+
   return (
     <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-6">
       <div className="flex flex-col sm:flex-row w-full justify-between pb-4 gap-4 sm:items-center">
         <h2 className="text-2xl font-bold text-dark dark:text-white">
           Team Participants
         </h2>
-        <Link
-          href={"/dashboard/team-participants/add"}
-          className="flex w-fit justify-center rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-opacity-90"
-        >
-          Add Participant
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="flex h-10 w-full sm:w-fit rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="All">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          <Button
+            onClick={downloadPDF}
+            variant="outline"
+            className="flex h-10 w-full sm:w-fit items-center gap-2 border-primary text-primary hover:bg-primary/5"
+          >
+            <DownloadIcon className="h-4 w-4" />
+            Download PDF
+          </Button>
+          <Link
+            href={"/dashboard/team-participants/add"}
+            className="flex w-fit justify-center rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-opacity-90 whitespace-nowrap"
+          >
+            Add Participant
+          </Link>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -62,8 +189,8 @@ export function ParticipantTable({ participants = [], fetchParticipants }: any) 
           </TableHeader>
 
           <TableBody>
-            {Array.isArray(participants) && participants.length > 0 ? (
-              participants.map((item: any) => (
+            {filteredParticipants.length > 0 ? (
+              filteredParticipants.map((item: any) => (
                 <TableRow
                   className="text-base font-medium text-dark dark:text-white"
                   key={item._id}
