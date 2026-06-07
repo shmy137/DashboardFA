@@ -51,8 +51,10 @@ export function EvaluationTable({ data = [], competitionId, competition, onSucce
   };
 
   useEffect(() => {
-    if (competition?.judgeConfig) {
+    if (competition?.judgeConfig && Array.isArray(competition.judgeConfig.names) && competition.judgeConfig.names.length > 0) {
       setJudgeConfig(competition.judgeConfig);
+    } else {
+      setJudgeConfig({ count: 1, names: ["Judge 1"] });
     }
     fetchResults();
   }, [competition, competitionId]);

@@ -4,6 +4,7 @@ import { EvaluationTable } from "./_components/evaluation-table";
 import { ParticipantApi } from "@/lib/api/ParticipantApi";
 import { CompetitionApi } from "@/lib/api/CompetitionApi";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const EvaluationPage = () => {
   const [data, setData] = useState<any[]>([]);
@@ -124,12 +125,6 @@ const EvaluationPage = () => {
                   <div>
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                       {comp.name}
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ml-2 ${comp.status === "completed" ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-amber-100 text-amber-800 hover:bg-amber-100"}`}
-                      >
-                        {comp.status === "completed" ? "completed" : "pending"}
-                      </Badge>
                     </h3>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge variant="outline" className="text-xs">
@@ -139,6 +134,35 @@ const EvaluationPage = () => {
                         {comp.gender || "Boys"}
                       </Badge>
                     </div>
+                  </div>
+                  
+                  <div onClick={(e) => e.stopPropagation()} className="mt-4 sm:mt-0 flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">Evaluation:</span>
+                    <select
+                      value={comp.evaluationStatus || "pending"}
+                      onChange={async (e) => {
+                        try {
+                          const newStatus = e.target.value;
+                          const res = await CompetitionApi.updateCompetition(comp._id, { evaluationStatus: newStatus });
+                          if (res.data?.success) {
+                            toast.success(`Evaluation status updated to ${newStatus}`);
+                            fetchCompetitionsData();
+                          } else {
+                            toast.error("Failed to update evaluation status");
+                          }
+                        } catch (error) {
+                          toast.error("An error occurred");
+                        }
+                      }}
+                      className={`flex h-9 w-[130px] rounded-md border px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                        comp.evaluationStatus === "completed"
+                          ? "bg-green-50 border-green-200 text-green-700"
+                          : "bg-amber-50 border-amber-200 text-amber-700"
+                      }`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="completed">Completed</option>
+                    </select>
                   </div>
                 </div>
 
